@@ -18,3 +18,5 @@ namespace logger = F4SE::log;
 using namespace std::literals;
 
 #include "Version.h"
+
+#include <SimpleIni.h>

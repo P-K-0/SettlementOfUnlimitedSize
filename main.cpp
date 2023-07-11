@@ -1,5 +1,7 @@
 
 #include "PCH.h"
+
+#include "settings.h"
 #include "patch.h"
 
 extern "C" DLLEXPORT bool F4SEAPI F4SEPlugin_Query(const F4SE::QueryInterface* a_f4se, F4SE::PluginInfo* a_info)
@@ -42,7 +44,7 @@ extern "C" DLLEXPORT bool F4SEAPI F4SEPlugin_Query(const F4SE::QueryInterface* a
 	}
 
 	const auto ver = a_f4se->RuntimeVersion();
-	if (ver < F4SE::RUNTIME_1_10_162) {
+	if (ver < F4SE::RUNTIME_1_10_130) {
 
 		logger::critical(FMT_STRING("unsupported runtime v{}"), ver.string());
 
@@ -57,6 +59,8 @@ void Listener(F4SE::MessagingInterface::Message* msg)
 	switch (msg->type) {
 	
 	case F4SE::MessagingInterface::kGameLoaded:
+
+		Settings::Manager::GetSingleton().Read();
 
 		Patch::Install();
 
