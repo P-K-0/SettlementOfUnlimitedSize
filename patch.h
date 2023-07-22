@@ -4,26 +4,28 @@
 
 namespace Patch {
 
-	static inline REL::Relocation<std::uintptr_t> GetBudgetFraction_void{ REL::ID(1282871) };
+	constexpr auto GetBudgetFractionID = REL::ID(1282871);
+	constexpr auto GetAvailableCountID = REL::ID(1583245);
 
-	void write_value(std::uint32_t value, std::uintptr_t offset)
-	{
-		// mov eax, 0x00000000
-		// nop
-		std::uint8_t mov[]{ 0xb8, 0x00, 0x00, 0x00, 0x00, 0x90 }; 
+	static inline REL::Relocation<std::uint32_t*> iWorkshopSettlerPopulationMax{ REL::ID(325973) };
 
-		std::memcpy(&mov[1], &value, 4);
+	struct GetActorValue {
 
-		REL::safe_write(GetBudgetFraction_void.address() + offset, mov, sizeof mov);
-	}
+		static float thunk(RE::ActorValueOwner* a_this, RE::ActorValueInfo* a_info)
+		{
+			auto value = func(a_this, a_info);
 
-	void write_nop(std::uintptr_t offset)
-	{
-		// nop x 5
-		std::uint8_t nop[]{ 0x90, 0x90, 0x90, 0x90, 0x90 };
+			if (a_this && a_info && a_info->GetFormID() == 0x334)
+				value = a_this->GetBaseActorValue(*a_info);
 
-		REL::safe_write(GetBudgetFraction_void.address() + offset, nop, sizeof nop);
-	}
+			return value;
+		}
+
+		static inline REL::Relocation<decltype(thunk)> func;
+
+		static inline std::uintptr_t index = 0xf5;
+		static inline auto vtbl = RE::TESObjectREFR::VTABLE;
+	};
 
 	void Install() noexcept
 	{
@@ -34,19 +36,40 @@ namespace Patch {
 
 		auto& settings = Settings::Manager::GetSingleton();
 
+		if (settings.ShelteredBedsCountPatch()) {
+
+			stl::write_vfunc<GetActorValue>();
+		
+			logger::info("Sheltered Beds count Patch successfully installed!");
+		}
+
 		if (settings.IsAltPatch()) {
 
-			write_nop(0x0f);
-			write_nop(0x25);
+			// nop x 5
+			std::uint8_t nop[]{ 0x90, 0x90, 0x90, 0x90, 0x90 };
+
+			stl::write_value(GetBudgetFractionID, 0x0f, nop, sizeof nop); // max triangles
+			stl::write_value(GetBudgetFractionID, 0x25, nop, sizeof nop); // max draws
 
 			logger::info("Alternative Patch successfully installed!");
 		}
 		else {
 
-			write_value(settings.MaxTriangles(), 0x14); // max triangles
-			write_value(settings.MaxDraws(), 0x2a); // max draws
+			// mov eax, 0x00000000
+			// nop
+			std::uint8_t mov[]{ 0xb8, 0x00, 0x00, 0x00, 0x00, 0x90 };
+
+			stl::write_value(GetBudgetFractionID, 0x14, settings.MaxTriangles(), mov, sizeof mov, 1); // max triangles
+			stl::write_value(GetBudgetFractionID, 0x2a, settings.MaxDraws(), mov, sizeof mov, 1); // max draws
 
 			logger::info("Patch successfully installed!");
+		}
+
+		if (iWorkshopSettlerPopulationMax.get()) {
+
+			*iWorkshopSettlerPopulationMax = settings.WorkshopSettlerPopulationMax();
+		
+			logger::info("Settler Population Max : {}", *iWorkshopSettlerPopulationMax);
 		}
 
 		installed = true;

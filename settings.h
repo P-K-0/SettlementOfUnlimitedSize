@@ -16,9 +16,11 @@ namespace Settings {
 			return instance;
 		}
 
-		[[nodiscard]] const bool& IsAltPatch() const noexcept { return bAltPatch; }
-		[[nodiscard]] const std::uint32_t& MaxTriangles() const noexcept { return uMaxTriangles; }
-		[[nodiscard]] const std::uint32_t& MaxDraws() const noexcept { return uMaxDraws; }
+		[[nodiscard]] const auto& IsAltPatch() const noexcept { return bAltPatch; }
+		[[nodiscard]] const auto& MaxTriangles() const noexcept { return uMaxTriangles; }
+		[[nodiscard]] const auto& MaxDraws() const noexcept { return uMaxDraws; }
+		[[nodiscard]] const auto& WorkshopSettlerPopulationMax() const noexcept { return iWorkshopSettlerPopulationMax; }
+		[[nodiscard]] const auto& ShelteredBedsCountPatch() const noexcept { return bShelteredBedsCountPatch; }
 
 		void Read() noexcept;
 
@@ -34,8 +36,11 @@ namespace Settings {
 		Manager& operator=(Manager&&) = delete;
 
 		bool bAltPatch{};
-		
 		std::uint32_t uMaxTriangles{};
 		std::uint32_t uMaxDraws{};
+
+		std::uint32_t iWorkshopSettlerPopulationMax{};
+
+		bool bShelteredBedsCountPatch{};
 	};
 }
